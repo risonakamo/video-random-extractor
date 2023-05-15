@@ -35,11 +35,13 @@ class DesiredIntervalTime(BaseModel):
 @logger.catch()
 def main():
     HERE:str=dirname(realpath(__file__))
-    DESIRED_SEGMENTS:int=30
+    DESIRED_SEGMENTS:int=100
     MAX_DEVIATION:int=15
     JITTER:float=2.5
-    OUTPUT_DIR:str=join(HERE,"output")
-    DRY_RUN:bool=True
+    OUTPUT_DIR:str=join(HERE,"output3")
+    DRY_RUN:bool=False
+    MIN_SEGMENTS:int=60
+    MAX_SEGMENTS:int=500
 
     makedirs(OUTPUT_DIR,exist_ok=True)
 
@@ -51,9 +53,17 @@ def main():
     logger.info("interval jitter: {}s",JITTER)
     logger.info("video duration: {}s",duration)
 
-    randomisationRange:DesiredIntervalTime=intervalTimeCalc2(
-        desiredSegments=DESIRED_SEGMENTS,
-        segmentDeviation=MAX_DEVIATION,
+    debug("desired avg",duration/DESIRED_SEGMENTS)
+
+    # randomisationRange:DesiredIntervalTime=intervalTimeCalc2(
+    #     desiredSegments=DESIRED_SEGMENTS,
+    #     segmentDeviation=MAX_DEVIATION,
+    #     maxTime=duration
+    # )
+
+    randomisationRange:DesiredIntervalTime=intervalCalc3(
+        minSegments=MIN_SEGMENTS,
+        maxSegments=MAX_SEGMENTS,
         maxTime=duration
     )
 
@@ -66,21 +76,24 @@ def main():
     )
 
     logger.info("actual number of output images: {}",len(segments))
-    # debug(segments)
 
-    exit()
     if not DRY_RUN:
         for i,time in enumerate(segments):
             i:int
             time:float
 
-            logger.info("extracting {}/{} @ {}s",i,len(segments),time)
+            logger.info("extracting {}/{} @ {}s",
+                i+1,
+                len(segments),
+                time
+            )
             extractFrame(
                 vidFile,
                 time,
                 join(OUTPUT_DIR,f"{i+1}.jpg")
             )
 
+    logger.info("complete")
     vidFile.release()
 
 def getVidDuration(video:VideoCapture2)->float:
@@ -101,6 +114,8 @@ def segmentTimeRandom(randomIntervalRange:TimeIntervalRange,maxTime:float)->list
         int(randomIntervalRange[0]*1000),
         int(randomIntervalRange[1]*1000)
     )
+
+    debug(timeRangeMs)
 
     times:list[float]=[]
     currTime:int=0
@@ -158,6 +173,19 @@ def intervalTimeCalc2(
     if minSegments<=0:
         logger.error("min segments cannot be below 0")
         raise Exception("min segments error")
+
+    return intervalCalc3(
+        minSegments=minSegments,
+        maxSegments=maxSegments,
+        maxTime=maxTime
+    )
+
+def intervalCalc3(
+    minSegments:int,
+    maxSegments:int,
+    maxTime:float
+)->DesiredIntervalTime:
+    """calculate interval range based on min and max desired number of segments"""
 
     minIntervalTime:float=maxTime/minSegments
     maxIntervalTime:float=maxTime/maxSegments
