@@ -3,6 +3,8 @@ from devtools import debug
 from loguru import logger
 from random import randint
 from pydantic import BaseModel
+from os.path import join,dirname,realpath
+from os import makedirs
 
 from typing import Any, TypeAlias,TypeVar
 
@@ -31,9 +33,14 @@ class DesiredIntervalTime(BaseModel):
 
 @logger.catch()
 def main():
+    HERE:str=dirname(realpath(__file__))
     DESIRED_SEGMENTS:int=30
     JITTER:float=2.5
+    OUTPUT_DIR:str=join(HERE,"output")
 
+    makedirs(OUTPUT_DIR,exist_ok=True)
+
+    logger.info("output dir: {}",OUTPUT_DIR)
     logger.info("target number of output images: {}",DESIRED_SEGMENTS)
     logger.info("interval jitter: {}s",JITTER)
 
@@ -48,30 +55,26 @@ def main():
         jitter=JITTER
     )
 
-    logger.info("average capture interval: {}",randomisationRange.averageTime)
+    logger.info("average capture interval: {}s",randomisationRange.averageTime)
 
     segments:list[float]=segmentTimeRandom(
         randomIntervalRange=randomisationRange.interval,
         maxTime=duration
     )
 
-    logger.info("calculated {} segments",len(segments))
-    debug(segments)
+    logger.info("actual number of output images: {}",len(segments))
+    # debug(segments)
 
+    for i,time in enumerate(segments):
+        i:int
+        time:float
 
-
-
-    # vidFile.set(CAP_PROP_POS_MSEC,(2*60+15)*1000)
-
-    # success:bool
-    # frame:Mat
-    # success,frame=vidFile.read()
-
-    # if success:
-    #     imwrite("test.jpg",frame)
-
-    # else:
-    #     print("failed")
+        logger.info("extracting {}/{} @ {}s",i,len(segments),time)
+        extractFrame(
+            vidFile,
+            time,
+            join(OUTPUT_DIR,f"{i+1}.jpg")
+        )
 
     vidFile.release()
 
@@ -129,6 +132,19 @@ def calcIntervalRangeFromDesiredSegments(
         )
     )
 
+def extractFrame(video:VideoCapture2,position:float,outputFile:str)->None:
+    """given a seconds position in file, extract and save as file"""
+
+    video.set(CAP_PROP_POS_MSEC,int(position*1000))
+
+    success:bool
+    frame:Mat
+    success,frame=video.read()
+
+    if not success:
+        raise Exception("died")
+
+    imwrite(outputFile,frame)
 
 if __name__=="__main__":
     main()
