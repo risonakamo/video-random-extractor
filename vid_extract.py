@@ -1,5 +1,6 @@
 from cv2 import VideoCapture,CAP_PROP_POS_MSEC,imwrite,Mat,CAP_PROP_FRAME_COUNT,CAP_PROP_FPS
 from devtools import debug
+import devtools
 from loguru import logger
 from random import randint
 from pydantic import BaseModel
@@ -35,28 +36,30 @@ class DesiredIntervalTime(BaseModel):
 def main():
     HERE:str=dirname(realpath(__file__))
     DESIRED_SEGMENTS:int=30
+    MAX_DEVIATION:int=15
     JITTER:float=2.5
     OUTPUT_DIR:str=join(HERE,"output")
+    DRY_RUN:bool=True
 
     makedirs(OUTPUT_DIR,exist_ok=True)
+
+    vidFile:VideoCapture2=VideoCapture("test.webm")
+    duration:float=getVidDuration(vidFile)
 
     logger.info("output dir: {}",OUTPUT_DIR)
     logger.info("target number of output images: {}",DESIRED_SEGMENTS)
     logger.info("interval jitter: {}s",JITTER)
-
-    vidFile:VideoCapture2=VideoCapture("test.webm")
-
-    duration:float=getVidDuration(vidFile)
     logger.info("video duration: {}s",duration)
 
-    randomisationRange:DesiredIntervalTime=calcIntervalRangeFromDesiredSegments(
+    randomisationRange:DesiredIntervalTime=intervalTimeCalc2(
         desiredSegments=DESIRED_SEGMENTS,
-        maxTime=duration,
-        jitter=JITTER
+        segmentDeviation=MAX_DEVIATION,
+        maxTime=duration
     )
 
     logger.info("average capture interval: {}s",randomisationRange.averageTime)
 
+    debug(randomisationRange)
     segments:list[float]=segmentTimeRandom(
         randomIntervalRange=randomisationRange.interval,
         maxTime=duration
@@ -65,16 +68,18 @@ def main():
     logger.info("actual number of output images: {}",len(segments))
     # debug(segments)
 
-    for i,time in enumerate(segments):
-        i:int
-        time:float
+    exit()
+    if not DRY_RUN:
+        for i,time in enumerate(segments):
+            i:int
+            time:float
 
-        logger.info("extracting {}/{} @ {}s",i,len(segments),time)
-        extractFrame(
-            vidFile,
-            time,
-            join(OUTPUT_DIR,f"{i+1}.jpg")
-        )
+            logger.info("extracting {}/{} @ {}s",i,len(segments),time)
+            extractFrame(
+                vidFile,
+                time,
+                join(OUTPUT_DIR,f"{i+1}.jpg")
+            )
 
     vidFile.release()
 
@@ -109,7 +114,7 @@ def segmentTimeRandom(randomIntervalRange:TimeIntervalRange,maxTime:float)->list
 
         times.append(currTime/1000)
 
-def calcIntervalRangeFromDesiredSegments(
+def intervalTimeCalc1(
     desiredSegments:int,
     maxTime:float,
     jitter:float
@@ -131,6 +136,43 @@ def calcIntervalRangeFromDesiredSegments(
             averageIntervalTime+jitter
         )
     )
+
+def intervalTimeCalc2(
+    desiredSegments:int,
+    segmentDeviation:int,
+    maxTime:float
+)->DesiredIntervalTime:
+    """calculate interval range based on desired number of segments and a segment deviation. segment
+    deviation is how much the final amount of segments can be.
+
+    ex:
+    desired: 100 segments
+    deviation: 50 segments
+    possible range of segments created: 50-150
+
+    max time should be in seconds. output range values are all in seconds"""
+
+    minSegments:int=desiredSegments-segmentDeviation
+    maxSegments:int=desiredSegments+segmentDeviation
+
+    if minSegments<=0:
+        logger.error("min segments cannot be below 0")
+        raise Exception("min segments error")
+
+    minIntervalTime:float=maxTime/minSegments
+    maxIntervalTime:float=maxTime/maxSegments
+
+    avgTime:float=(minIntervalTime+maxIntervalTime)/2
+
+    return DesiredIntervalTime(
+        averageTime=avgTime,
+        interval=(
+            # flipped because min time makes the higher value
+            maxIntervalTime,
+            minIntervalTime
+        )
+    )
+
 
 def extractFrame(video:VideoCapture2,position:float,outputFile:str)->None:
     """given a seconds position in file, extract and save as file"""
