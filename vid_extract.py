@@ -3,34 +3,10 @@ from devtools import debug
 from rich import print as printr,pretty
 from loguru import logger
 from random import randint
-from pydantic import BaseModel
 from os.path import join,dirname,realpath
 from os import makedirs
 
-from typing import Any, TypeAlias,TypeVar
-
-T=TypeVar("T")
-class VideoCapture2:
-    def set(self,prop:int,value:Any)->None:
-        ...
-
-    def get(self,prop:int)->Any:
-        ...
-
-    def read(self)->tuple[bool,Mat]:
-        ...
-
-    def release(self)->None:
-        ...
-
-TimeIntervalRange:TypeAlias=tuple[float,float]
-"""a time duration random. float seconds time"""
-
-TimeIntervalRangeMs:TypeAlias=tuple[int,int]
-
-class DesiredIntervalTime(BaseModel):
-    averageTime:float
-    interval:TimeIntervalRange
+from vid_extract_types import VideoCapture2,TimeIntervalRange,TimeIntervalRangeMs,DesiredIntervalTime
 
 pretty.install()
 
