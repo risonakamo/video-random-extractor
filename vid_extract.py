@@ -1,6 +1,6 @@
 from cv2 import VideoCapture,CAP_PROP_POS_MSEC,imwrite,Mat,CAP_PROP_FRAME_COUNT,CAP_PROP_FPS
 from devtools import debug
-import devtools
+from rich import print as printr,pretty
 from loguru import logger
 from random import randint
 from pydantic import BaseModel
@@ -32,34 +32,22 @@ class DesiredIntervalTime(BaseModel):
     averageTime:float
     interval:TimeIntervalRange
 
+pretty.install()
+
 @logger.catch()
 def main():
     HERE:str=dirname(realpath(__file__))
-    DESIRED_SEGMENTS:int=100
-    MAX_DEVIATION:int=15
-    JITTER:float=2.5
     OUTPUT_DIR:str=join(HERE,"output3")
     DRY_RUN:bool=False
     MIN_SEGMENTS:int=60
-    MAX_SEGMENTS:int=500
-
-    makedirs(OUTPUT_DIR,exist_ok=True)
+    MAX_SEGMENTS:int=100
 
     vidFile:VideoCapture2=VideoCapture("test.webm")
     duration:float=getVidDuration(vidFile)
 
-    logger.info("output dir: {}",OUTPUT_DIR)
-    logger.info("target number of output images: {}",DESIRED_SEGMENTS)
-    logger.info("interval jitter: {}s",JITTER)
-    logger.info("video duration: {}s",duration)
-
-    debug("desired avg",duration/DESIRED_SEGMENTS)
-
-    # randomisationRange:DesiredIntervalTime=intervalTimeCalc2(
-    #     desiredSegments=DESIRED_SEGMENTS,
-    #     segmentDeviation=MAX_DEVIATION,
-    #     maxTime=duration
-    # )
+    printr(f"output dir: [green]{OUTPUT_DIR}[/green]")
+    printr("target number of output images: [yellow]{}-{}[/yellow]".format(MIN_SEGMENTS,MAX_SEGMENTS))
+    printr("video duration: [yellow]{}[/yellow]s".format(duration))
 
     randomisationRange:DesiredIntervalTime=intervalCalc3(
         minSegments=MIN_SEGMENTS,
@@ -67,33 +55,52 @@ def main():
         maxTime=duration
     )
 
-    logger.info("average capture interval: {}s",randomisationRange.averageTime)
+    printr("average capture interval: {}s".format(randomisationRange.averageTime))
 
-    debug(randomisationRange)
     segments:list[float]=segmentTimeRandom(
         randomIntervalRange=randomisationRange.interval,
         maxTime=duration
     )
 
-    logger.info("actual number of output images: {}",len(segments))
+    printr("actual number of output images: [yellow]{}[/yellow]".format(len(segments)))
+
+    printr()
+    printr("will create [yellow]{}[/yellow] images. proceed?".format(len(segments)))
+    printr("y: proceed")
+    printr("n: cancel")
+    printr("s: reshuffle")
+
+    userInput:str=input(">")
+
+    match userInput:
+        case "n":
+            printr("[red]quitting[/red]")
+            exit()
+        case "y":
+            pass
+        case other:
+            printr("[red]invalid choice, quitting[/red]")
+            exit()
+
+    makedirs(OUTPUT_DIR,exist_ok=True)
 
     if not DRY_RUN:
         for i,time in enumerate(segments):
             i:int
             time:float
 
-            logger.info("extracting {}/{} @ {}s",
+            printr("extracting {}/{} @ {}s".format(
                 i+1,
                 len(segments),
                 time
-            )
+            ))
             extractFrame(
                 vidFile,
                 time,
                 join(OUTPUT_DIR,f"{i+1}.jpg")
             )
 
-    logger.info("complete")
+    printr("complete")
     vidFile.release()
 
 def getVidDuration(video:VideoCapture2)->float:
@@ -114,8 +121,6 @@ def segmentTimeRandom(randomIntervalRange:TimeIntervalRange,maxTime:float)->list
         int(randomIntervalRange[0]*1000),
         int(randomIntervalRange[1]*1000)
     )
-
-    debug(timeRangeMs)
 
     times:list[float]=[]
     currTime:int=0
