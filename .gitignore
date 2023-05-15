@@ -1,2 +1,4 @@
 output*
 test.webm
+__pycache__
+*.egg-info
