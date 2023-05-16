@@ -37,7 +37,8 @@ def main():
     # calculating the extraction segments
     segments:list[float]=segmentTimeRandom(
         randomIntervalRange=randomisationRange.interval,
-        maxTime=duration
+        maxTime=duration,
+        shuffle=args.shuffle
     )
 
     # printing out information
@@ -53,6 +54,7 @@ def main():
         randomisationRange.interval[0],
         randomisationRange.interval[1]
     ))
+    printr("shuffling: {}".format(args.shuffle))
 
     printr("pending output images: [bright_yellow]{}[/bright_yellow]".format(len(segments)))
     printr(f"output dir: [green]{args.outputDir}[/green]")

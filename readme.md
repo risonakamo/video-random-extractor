@@ -19,6 +19,10 @@ required arguments:
 - `-n1, --min`: select the minimum number of images you would like to create. due to randomisation, it will be above this value depending on your maximum chosen value
 - `-n2, --max`: select maximum number of images you would like to create. due to the interval division algorithm, it is difficult to reach this max value, but it will increase the actual number of images generated. a larger range from your minimum value will increase randomness
 
+optional
+
+- `-s, --shuffle`: shuffle the generation order, resulting in shuffled output images (images in the output do not appear in chronological order of the video)
+
 the program will display the number of images that will actually be created and then ask for confirmation, so you can fine-tune your ranges in case it creates too much or too litle
 
 ![](./readme-img/1.png)

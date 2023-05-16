@@ -12,6 +12,8 @@ class VidExtractArgs(BaseModel):
     minSegments:int
     maxSegments:int
 
+    shuffle:bool
+
 def getArgs()->VidExtractArgs:
     """get arguments from commandline for vid extract program"""
 
@@ -54,6 +56,15 @@ def getArgs()->VidExtractArgs:
         required=True,
         help="maximum target number of images to produce",
         dest="maxSegments"
+    )
+
+    parser.add_argument(
+        "-s",
+        "--shuffle",
+        required=False,
+        action="store_true",
+        help="shuffle generation order",
+        dest="shuffle"
     )
 
     args:VidExtractArgs=VidExtractArgs.parse_obj(vars(parser.parse_args()))
