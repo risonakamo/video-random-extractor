@@ -12,5 +12,11 @@ setup(
         "rich",
         "devtools",
         "pydantic"
-    ]
+    ],
+
+    entry_points={
+        "console_scripts":[
+            "vid-summarise=video_summarise.bin.vid_extract:main"
+        ]
+    }
 )

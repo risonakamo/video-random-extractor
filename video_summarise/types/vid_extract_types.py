@@ -12,7 +12,7 @@ class VideoCapture2:
     def get(self,prop:int)->Any:
         ...
 
-    def read(self)->tuple[bool,Mat]:
+    def read(self)->tuple[bool,Mat|None]:
         ...
 
     def release(self)->None:

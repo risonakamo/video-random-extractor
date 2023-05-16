@@ -46,10 +46,10 @@ def main():
         args.minSegments,
         args.maxSegments
     ))
-    printr("video duration: [yellow]{}[/yellow]s".format(duration))
+    printr("video duration: [yellow]{:.2f}[/yellow]s".format(duration))
 
-    printr("average screenshot interval: [magenta]{}[/magenta]s".format(randomisationRange.averageTime))
-    printr("screenshot interval range: [magenta]{}[/magenta]~[magenta]{}[/magenta]s".format(
+    printr("average screenshot interval: [magenta]{:.2f}[/magenta]s".format(randomisationRange.averageTime))
+    printr("screenshot interval range: [magenta]{:.2f}[/magenta]~[magenta]{:.2f}[/magenta]s".format(
         randomisationRange.interval[0],
         randomisationRange.interval[1]
     ))
