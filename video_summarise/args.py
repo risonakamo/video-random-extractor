@@ -1,7 +1,8 @@
 from argparse import ArgumentParser,Namespace
 from devtools import debug
+from loguru import logger
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 class VidExtractArgs(BaseModel):
     """command line arguments"""
@@ -38,7 +39,7 @@ def getArgs()->VidExtractArgs:
     )
 
     parser.add_argument(
-        "-m",
+        "-n1",
         "--min",
         type=int,
         required=True,
@@ -47,7 +48,7 @@ def getArgs()->VidExtractArgs:
     )
 
     parser.add_argument(
-        "-n",
+        "-n2",
         "--max",
         type=int,
         required=True,
@@ -55,4 +56,10 @@ def getArgs()->VidExtractArgs:
         dest="maxSegments"
     )
 
-    return VidExtractArgs.parse_obj(vars(parser.parse_args()))
+    args:VidExtractArgs=VidExtractArgs.parse_obj(vars(parser.parse_args()))
+
+    if args.minSegments>args.maxSegments:
+        logger.error("min segments must be lower than max segments")
+        raise Exception("min segments error")
+
+    return args

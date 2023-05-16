@@ -1,8 +1,9 @@
+from genericpath import isfile
 from cv2 import VideoCapture
 from devtools import debug
 from rich import print as printr,pretty
 from loguru import logger
-from os.path import join,realpath
+from os.path import join,realpath,isdir
 from os import makedirs
 
 from video_summarise.types.vid_extract_types import VideoCapture2,DesiredIntervalTime
@@ -19,6 +20,10 @@ def main():
     args.outputDir=realpath(args.outputDir)
 
     # opening the file
+    if not isfile(args.videoFile):
+        printr("[red]could not find target video file[/red]")
+        exit()
+
     vidFile:VideoCapture2=VideoCapture(args.videoFile)
     duration:float=getVidDuration(vidFile)
 
