@@ -1,4 +1,5 @@
 from genericpath import isfile
+from uuid import uuid4
 from cv2 import VideoCapture
 from devtools import debug
 from rich import print as printr,pretty
@@ -18,6 +19,8 @@ pretty.install()
 def main():
     args:VidExtractArgs=getArgs()
     args.outputDir=realpath(args.outputDir)
+
+    namehash:str=uuid4().hex[:6]
 
     # opening the file
     if not isfile(args.videoFile):
@@ -55,6 +58,7 @@ def main():
         randomisationRange.interval[1]
     ))
     printr("shuffling: {}".format(args.shuffle))
+    printr("output hash: [cyan]{}[/cyan]".format(namehash))
 
     printr("pending output images: [bright_yellow]{}[/bright_yellow]".format(len(segments)))
     printr(f"output dir: [green]{args.outputDir}[/green]")
@@ -95,7 +99,7 @@ def main():
         extractFrame(
             vidFile,
             time,
-            join(args.outputDir,f"{i+1}.jpg")
+            join(args.outputDir,f"{namehash}-{i+1}.jpg")
         )
 
     printr("[green]complete[/green]")

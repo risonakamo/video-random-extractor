@@ -9,6 +9,14 @@ python 3.10+
 2. `pip install -e .` this repo
 3. `vid-summarise` to use the program
 
+# features
+the program will display the number of images that will actually be created and then ask for confirmation, so you can fine-tune your ranges in case it creates too much or too litle
+
+![](./readme-img/1.png)
+![](./readme-img/2.png)
+
+output files will be numbered and have a hash, so you can continually generate into the same output folder without overwriting
+
 # usage
 `vid-summarise -h` for help
 
@@ -22,8 +30,3 @@ required arguments:
 optional
 
 - `-s, --shuffle`: shuffle the generation order, resulting in shuffled output images (images in the output do not appear in chronological order of the video)
-
-the program will display the number of images that will actually be created and then ask for confirmation, so you can fine-tune your ranges in case it creates too much or too litle
-
-![](./readme-img/1.png)
-![](./readme-img/2.png)
