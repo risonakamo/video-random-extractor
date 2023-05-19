@@ -67,7 +67,6 @@ def main():
     printr("will create [bright_yellow]{}[/bright_yellow] images. proceed?".format(len(segments)))
     printr("y: proceed")
     printr("n: cancel")
-    printr("s: reshuffle")
 
     # handling confirmation
     userInput:str=input(">")
